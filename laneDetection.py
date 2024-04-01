@@ -2,14 +2,17 @@ import cv2 as cv
 import numpy as np
 from alg1 import *
 from cleanLines import *
+import time
 
-def laneDetection(frame):
+def laneDetection(frame,cvThresh):
+    copyFrame = frame.copy()
+    turnOrNot = False
     while True:
         grayFrame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
 
         gausFrame = cv.GaussianBlur(grayFrame, (3, 3), 5)
 
-        nayFrame = cv.Canny(gausFrame,15,120,3)
+        nayFrame = cv.Canny(gausFrame,15,cvThresh,2)
 
         lineys = cv.HoughLinesP(nayFrame, 1, np.pi / 180, 35,maxLineGap=300)
         xv = []
@@ -19,8 +22,9 @@ def laneDetection(frame):
         lines = []
 
         if lineys is None:
-            print("Hough Line Transform Failed! Skipping Frame...")
-            break
+            print("TURNING")
+            cv.putText(frame, 'TURNING', (0, h // 2), cv.FONT_HERSHEY_PLAIN, 6, (0, 0, 0), 5)
+            return frame, nayFrame, grayFrame
         else:
             for line in lineys:
                 x1, y1, x2, y2 = line[0]
@@ -29,7 +33,17 @@ def laneDetection(frame):
                     pass
                 else:
                     cv.line(grayFrame, (x1, y1), (x2, y2), (0, 0, 0), 3)
-                    pass
+                    meanX = (x1+x2)/2
+                    h,w,c = frame.shape
+                    if -70<meanX-200<70:
+                        print("TURNING")
+                        cv.putText(copyFrame, 'TURNING', (0,h//2), cv.FONT_HERSHEY_PLAIN, 6, (0,0,0), 5)
+                        return copyFrame, nayFrame, grayFrame
+
+
+
+                    cv.line(grayFrame, (int(w/2)-50, int(h/2)),(int(w/2)+50,int(h/2)),(0,255,0),3)
+
 
                 xv.append(x1)
                 xv2.append(x2)
@@ -44,6 +58,7 @@ def laneDetection(frame):
         leftExtendedLines = []
         leftTopPoints = []
         leftBottomPoints = []
+
 
         for line in leftLines:
             x1 = line[0][0]
@@ -100,7 +115,7 @@ def laneDetection(frame):
 
         topLeftTotal = 0
         count = 0
-        print(leftTopPoints)
+        #print(leftTopPoints)
         for i in leftTopPoints:
             topLeftTotal += i[0]
             count += 1
@@ -108,7 +123,7 @@ def laneDetection(frame):
             topLeftTotal /= count
 
         except:
-            print("eeny")
+            print("TURNING")
             break
 
         topLeftAv = (int(topLeftTotal), 0)
@@ -122,7 +137,7 @@ def laneDetection(frame):
             bottomLeftTotal /= count
 
         except:
-            print("meeny")
+            print("TURNING")
             pass
 
         bottomLeftAv = (int(bottomLeftTotal), h)
@@ -137,7 +152,7 @@ def laneDetection(frame):
             topRightTotal /= count
 
         except:
-            print("miney")
+            print("TURNING")
             pass
 
         topRightAv = (int(topRightTotal), 0)
@@ -152,17 +167,19 @@ def laneDetection(frame):
             bottomRightTotal /= count
 
         except:
-            print("moe")
+            print("TURNING")
             pass
 
         bottomRightAv = (int(bottomRightTotal), h)
 
-        cv.line(frame, topLeftAv, bottomLeftAv, (0,255,0),5)
-        cv.line(frame, topRightAv, bottomRightAv, (255, 0, 0), 5)
+
+
 
         bottomCenterAv = (int((bottomRightTotal + bottomLeftTotal)/2), h)
         topCenterAv = (int((topRightTotal + topLeftTotal)/2), 0)
 
         cv.line(frame, topCenterAv, bottomCenterAv, (0,0,255),5)
+        cv.line(frame, topLeftAv, bottomLeftAv, (0, 255, 0), 5)
+        cv.line(frame, topRightAv, bottomRightAv, (255, 0, 0), 5)
 
         return frame, nayFrame, grayFrame

@@ -42,7 +42,7 @@ def check_logged_in(user, password, login_wind, root):
                 video_frame.config(image=frame)
                 video_frame.image = frame
             tank_wind.after(10, updateVideo)
-        def processVideo(p1,p2,p3,p4):
+        def processVideo(p1,p2,p3,p4,cvThresh):
             ret, frame = final_cap.read()
             if ret:
                 pts1 = np.float32([p1, p2, p3, p4])
@@ -55,7 +55,7 @@ def check_logged_in(user, password, login_wind, root):
                 cv.imshow('transfromers', cFrame)
 
                 try:
-                    nallo, gallo, mallo = laneDetection(cFrame)
+                    nallo, gallo, mallo = laneDetection(cFrame,cvThresh)
                 except:
                     pass
 
@@ -93,10 +93,10 @@ def check_logged_in(user, password, login_wind, root):
         welcome = Label(tank_wind, text=f'Welcome {name.title()}')
         welcome.grid(row=0, column=1, pady=10)  # Placing it in the middle top
 
-        video_frame = tk.Label(tank_wind,width=20, height=40)
+        video_frame = tk.Label(tank_wind,width=200, height=400)
         video_frame.grid(row=0,column=0,rowspan=1,padx=10,pady=10)
-        final_frame = tk.Label(tank_wind,width=20, height = 40)
-        final_frame.grid(row=1, column=0,rowspan=1,padx=10,pady=10)
+        final_frame = tk.Label(tank_wind,width=60, height = 40)
+        final_frame.grid(row=1, column=0,rowspan=200,padx=10,pady=400)
 
         # Frame for buttons
         button_frame = Frame(tank_wind)
@@ -134,6 +134,39 @@ def check_logged_in(user, password, login_wind, root):
         cap = cv.VideoCapture('IMG_2555.MOV')
         updateVideo()
         final_cap = cv.VideoCapture('IMG_2555.MOV')
+        p1 = [0, 1130]
+        # top left
+        p2 = [370, 930]
+        # top right
+        p3 = [720, 930]
+        # bottom right
+        p4 = [1080, 1130]
+        processVideo(p1,p2,p3,p4,120)
 
+        cap = cv.VideoCapture('IMG_2545.MOV')
+        updateVideo()
+        final_cap = cv.VideoCapture('IMG_2545.MOV')
+        # bottom left
+        p1 = [20, 1200]
+        # top left
+        p2 = [390, 1030]
+        # top right
+        p3 = [590, 1030]
+        # bottom right
+        p4 = [890, 1200]
+        processVideo(p1,p2,p3,p4,98)
+
+        cap = cv.VideoCapture('IMG_2548.MOV')
+        updateVideo()
+        final_cap = cv.VideoCapture('IMG_2548.MOV')
+        # bottom left
+        p1 = [00, 1300]
+        # top left
+        p2 = [300, 1135]
+        # top right
+        p3 = [720, 1135]
+        # bottom right
+        p4 = [940, 1300]
+        processVideo(p1, p2, p3, p4, 125)
 
         tank_wind.mainloop()
