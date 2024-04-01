@@ -1,14 +1,15 @@
 # if a user logs in successfully, creates the Tank GUI window with,
 # #at the moment, a welcome statement and logout button
 from all_log import *
-from login import *
-from tkinter import *
 from postDataMove import *
 from logging_out import *
 from LogDataWind import *
 import tkinter as tk
-from tkinter import ttk
 from PIL import Image, ImageTk
+import cv2 as cv
+import numpy as np
+from laneDetection import *
+
 def check_logged_in(user, password, login_wind, root):
     all_log(user)
     f = open('currentName','r')
@@ -41,6 +42,48 @@ def check_logged_in(user, password, login_wind, root):
                 video_frame.config(image=frame)
                 video_frame.image = frame
             tank_wind.after(10, updateVideo)
+        def processVideo(p1,p2,p3,p4):
+            ret, frame = final_cap.read()
+            if ret:
+                pts1 = np.float32([p1, p2, p3, p4])
+                pts2 = np.float32([[0, 640], [0, 0], [400, 0], [400, 650]])
+
+                # Apply Perspective Transform Algorithm
+                matrix = cv.getPerspectiveTransform(pts1, pts2)
+                cFrame = cv.warpPerspective(frame, matrix, (400, 650))
+
+                cv.imshow('transfromers', cFrame)
+
+                try:
+                    nallo, gallo, mallo = laneDetection(cFrame)
+                except:
+                    pass
+
+                procFrame = cv.cvtColor(cFrame, cv.COLOR_BGR2GRAY)
+
+                pts = np.array([p1, p2, p3, p4],
+                               np.int32)
+
+                pts = pts.reshape((-1, 1, 2))
+
+                isClosed = True
+
+                # Blue color in BGR
+                color = (255, 0, 0)
+
+                # Line thickness of 2 px
+                thickness = 2
+
+                # Using cv2.polylines() method
+                # Draw a Blue polygon with
+                # thickness of 1 px
+                image = cv.polylines(frame, [pts],
+                                      isClosed, color, thickness)
+                cFrame = Image.fromarray(cFrame)
+                cFrame = ImageTk.PhotoImage(cFrame)
+                final_frame.config(image=cFrame)
+                final_frame.image = cFrame
+
 
         tank_wind = Toplevel(login_wind)
         login_wind.withdraw()
@@ -50,8 +93,10 @@ def check_logged_in(user, password, login_wind, root):
         welcome = Label(tank_wind, text=f'Welcome {name.title()}')
         welcome.grid(row=0, column=1, pady=10)  # Placing it in the middle top
 
-        video_frame = tk.Label(tank_wind)
-        video_frame.grid(row=0,column=0,rowspan=4,padx=10,pady=10)
+        video_frame = tk.Label(tank_wind,width=20, height=40)
+        video_frame.grid(row=0,column=0,rowspan=1,padx=10,pady=10)
+        final_frame = tk.Label(tank_wind,width=20, height = 40)
+        final_frame.grid(row=1, column=0,rowspan=1,padx=10,pady=10)
 
         # Frame for buttons
         button_frame = Frame(tank_wind)
@@ -88,5 +133,7 @@ def check_logged_in(user, password, login_wind, root):
         # tank_wind.bind('<Right>', lambda: postDataMove('right', user))
         cap = cv.VideoCapture('IMG_2555.MOV')
         updateVideo()
+        final_cap = cv.VideoCapture('IMG_2555.MOV')
+
 
         tank_wind.mainloop()
