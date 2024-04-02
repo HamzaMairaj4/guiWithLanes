@@ -52,7 +52,7 @@ def check_logged_in(user, password, login_wind, root):
                 matrix = cv.getPerspectiveTransform(pts1, pts2)
                 cFrame = cv.warpPerspective(frame, matrix, (400, 650))
 
-                cv.imshow('transfromers', cFrame)
+
 
                 try:
                     nallo, gallo, mallo = laneDetection(cFrame,cvThresh)
@@ -83,6 +83,7 @@ def check_logged_in(user, password, login_wind, root):
                 cFrame = ImageTk.PhotoImage(cFrame)
                 final_frame.config(image=cFrame)
                 final_frame.image = cFrame
+            tank_wind.after(10, processVideo(p1,p2,p3,p4,cvThresh))
 
 
         tank_wind = Toplevel(login_wind)
